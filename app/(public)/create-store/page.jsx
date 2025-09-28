@@ -4,8 +4,17 @@ import { useEffect, useState } from 'react'
 import Image from 'next/image'
 import toast from 'react-hot-toast'
 import Loading from '@/components/Loading'
+import { useUser, useAuth } from '@clerk/nextjs'
+import { useRouter } from 'next/navigation'
+import axios from 'axios'
+import { ArrowRightIcon } from 'lucide-react'
+import Link from 'next/link'
 
 export default function CreateStore() {
+    const { user } = useUser()
+    const router = useRouter()
+    const { getToken } = useAuth()
+
     const [alreadySubmitted, setAlreadySubmitted] = useState(false)
     const [status, setStatus] = useState('')
     const [loading, setLoading] = useState(true)
@@ -27,18 +36,102 @@ export default function CreateStore() {
 
     const fetchSellerStatus = async () => {
         // Logic to check if the store is already submitted
+        const token = await getToken()
+        try {
+            const { data } = await axios.get('/api/store/data', {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            })
+
+            if (['approved', 'rejected', 'pending'].includes(data.status)) {
+                setAlreadySubmitted(true)
+                setStatus(data.status)
+                switch (data.status) {
+                    case 'approved':
+                        setMessage('Your store has been approved, you can now add products to your store from your dashboard. Redirecting to dashboard in 5 seconds...')
+                        setTimeout(() => {
+                            router.push('/store')
+                        }, 5000)
+                        break
+                    case 'rejected':
+                        setMessage('Your store has been rejected, contact admin for more details')
+                        break
+                    case 'pending':
+                        setMessage('Your store is pending approval, please wait for admin approval')
+                        break
+                    default:
+                        setMessage('Something went wrong, please try again')
+                        break
+                }
+            } else {
+                setAlreadySubmitted(false)
+                setStatus('')
+                setMessage('')
+            }
+            setLoading(false)
+
+        } catch (error) {
+            console.log(error)
+            toast.error(error?.response?.data?.error || error?.message)
+        }
 
         setLoading(false)
     }
 
     const onSubmitHandler = async (e) => {
         e.preventDefault()
-        // Logic to submit the store details
+
+        try {
+            // Logic to submit the store details
+            if (!user) {
+                return toast.error('Please login to submit the store details')
+            }
+
+            const token = await getToken()
+            const formData = new FormData()
+            formData.append('name', storeInfo.name)
+            formData.append('username', storeInfo.username)
+            formData.append('description', storeInfo.description)
+            formData.append('email', storeInfo.email)
+            formData.append('contact', storeInfo.contact)
+            formData.append('address', storeInfo.address)
+            formData.append('image', storeInfo.image)
+
+            const { data } = await axios.post('/api/store/create', formData, {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            })
+
+            toast.success(data.message)
+        } catch (error) {
+            console.log(error)
+            toast.error(error?.response?.data?.error || error?.message)
+        }
+        await fetchSellerStatus()
     }
 
+    
+
     useEffect(() => {
-        fetchSellerStatus()
-    }, [])
+        if (user) {
+            fetchSellerStatus()
+        }
+    }, [user])
+
+    if (!user) {
+        return (
+            <div className="min-h-[80vh] flex flex-col items-center justify-center">
+                <p className="sm:text-2xl lg:text-3xl mx-5 font-semibold text-slate-500 text-center max-w-2xl">
+                    Please login to submit the store details
+                </p>
+                <Link href="/sign-in" className="bg-slate-700 text-white flex items-center gap-2 mt-8 p-2 px-6 max-sm:text-sm rounded-full">
+                    Go to sign in <ArrowRightIcon size={18} />
+                </Link>
+            </div>
+        )
+    }
 
     return !loading ? (
         <>
