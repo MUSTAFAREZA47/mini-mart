@@ -18,7 +18,7 @@ export default function AdminApprove() {
     const fetchStores = async () => {
         try {
             const token = await getToken()
-            const { data } = await axios.get('/api/admin/stores', {
+            const { data } = await axios.get('/api/admin/approve-store', {
                 headers: {
                     Authorization: `Bearer ${token}`,
                 },
@@ -26,21 +26,33 @@ export default function AdminApprove() {
             setStores(data.stores)
         } catch (error) {
             toast.error(error?.response?.data?.error || error.message)
-        } finally {
-            setLoading(false)
-        }
+        } 
         setLoading(false)
     }
 
     const handleApprove = async ({ storeId, status }) => {
-        // Logic to approve a store
+        // Logic to approve a store 
+        try {
+            const token = await getToken()
+            const { data } = await axios.post('/api/admin/approve-store', { storeId, status }, {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            })
+            toast.success(data.message)
+            await fetchStores()
+        } catch (error) {
+            toast.error(error?.response?.data?.error || error.message)
+        }
 
 
     }
 
     useEffect(() => {
+        if (user) {
             fetchStores()
-    }, [])
+        }
+    }, [user])
 
     return !loading ? (
         <div className="text-slate-500 mb-28">

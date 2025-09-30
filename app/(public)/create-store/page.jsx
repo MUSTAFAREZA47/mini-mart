@@ -49,16 +49,22 @@ export default function CreateStore() {
                 setStatus(data.status)
                 switch (data.status) {
                     case 'approved':
-                        setMessage('Your store has been approved, you can now add products to your store from your dashboard. Redirecting to dashboard in 5 seconds...')
+                        setMessage(
+                            'Your store has been approved, you can now add products to your store from your dashboard. Redirecting to dashboard in 5 seconds...',
+                        )
                         setTimeout(() => {
                             router.push('/store')
                         }, 5000)
                         break
                     case 'rejected':
-                        setMessage('Your store has been rejected, contact admin for more details')
+                        setMessage(
+                            'Your store has been rejected, contact admin for more details',
+                        )
                         break
                     case 'pending':
-                        setMessage('Your store is pending approval, please wait for admin approval')
+                        setMessage(
+                            'Your store is pending approval, please wait for admin approval',
+                        )
                         break
                     default:
                         setMessage('Something went wrong, please try again')
@@ -70,7 +76,6 @@ export default function CreateStore() {
                 setMessage('')
             }
             setLoading(false)
-
         } catch (error) {
             console.log(error)
             toast.error(error?.response?.data?.error || error?.message)
@@ -112,8 +117,6 @@ export default function CreateStore() {
         await fetchSellerStatus()
     }
 
-    
-
     useEffect(() => {
         if (user) {
             fetchSellerStatus()
@@ -126,7 +129,10 @@ export default function CreateStore() {
                 <p className="sm:text-2xl lg:text-3xl mx-5 font-semibold text-slate-500 text-center max-w-2xl">
                     Please login to submit the store details
                 </p>
-                <Link href="/sign-in" className="bg-slate-700 text-white flex items-center gap-2 mt-8 p-2 px-6 max-sm:text-sm rounded-full">
+                <Link
+                    href="/sign-in"
+                    className="bg-slate-700 text-white flex items-center gap-2 mt-8 p-2 px-6 max-sm:text-sm rounded-full"
+                >
                     Go to sign in <ArrowRightIcon size={18} />
                 </Link>
             </div>

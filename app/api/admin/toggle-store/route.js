@@ -4,7 +4,7 @@ import { NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
 
 // toggle store isActive
-export async function GET(req) {
+export async function POST(req) {
     try {
         const { userId } = getAuth(req)
         const isAdmin = await authAdmin(userId)

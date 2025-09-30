@@ -10,15 +10,6 @@ const AdminSidebar = () => {
 
     const { user } = useUser()
 
-    console.log(user)
-    console.log(user?.image)
-    console.log(user?.fullName)
-    console.log(user?.firstName)
-    console.log(user?.lastName)
-    console.log(user?.email)
-    console.log(user?.image)
-    console.log(user?.fullName)
-
     const pathname = usePathname()
 
     const sidebarLinks = [
@@ -31,7 +22,7 @@ const AdminSidebar = () => {
     return (
         <div className="inline-flex h-full flex-col gap-5 border-r border-slate-200 sm:min-w-60">
             <div className="flex flex-col gap-3 justify-center items-center pt-8 max-sm:hidden">
-                <Image className="w-14 h-14 rounded-full" src={assets.gs_logo} alt="sidebar-user-image" width={80} height={80} />
+                <Image className="w-14 h-14 rounded-full" src={user?.imageUrl} alt="sidebar-user-image" width={80} height={80} />
                 <p className="text-slate-700">Hi, {user?.fullName}</p>
             </div>
 
