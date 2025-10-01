@@ -5,14 +5,16 @@ import prisma from '@/lib/prisma'
 export async function GET(req) {
     try {
         const { searchParams } = new URL(req.url)
-        const username = searchParams.get('username').toLowerCase()
+        const usernameParam = searchParams.get('username')
 
-        if (!username) {
+        if (!usernameParam) {
             return NextResponse.json(
                 { error: 'Username is required' },
                 { status: 400 },
             )
         }
+
+        const username = usernameParam.toLowerCase()
 
         // Get info and inStock products with ratings
         const store = await prisma.store.findUnique({

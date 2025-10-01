@@ -38,17 +38,33 @@ export default function CreateStore() {
         // Logic to check if the store is already submitted
         const token = await getToken()
         try {
-            const { data } = await axios.get('/api/store/data', {
+            const response = await axios.get('/api/store/create', {
                 headers: {
                     Authorization: `Bearer ${token}`,
                 },
             })
 
-            if (['approved', 'rejected', 'pending'].includes(data.status)) {
+            // If we get a message saying user hasn't registered a store, they can proceed
+            if (response.data.message === 'You have not registered a store') {
+                setAlreadySubmitted(false)
+                setStatus('')
+                setMessage('')
+            }
+            setLoading(false)
+        } catch (error) {
+            console.log('fetchSellerStatus error:', error)
+
+            // If we get an error response, check the status code to determine store status
+            if (
+                error?.response?.data?.error ===
+                'You already have a store registered'
+            ) {
                 setAlreadySubmitted(true)
-                setStatus(data.status)
-                switch (data.status) {
-                    case 'approved':
+                const statusCode = error.response.status
+
+                switch (statusCode) {
+                    case 200: // approved
+                        setStatus('approved')
                         setMessage(
                             'Your store has been approved, you can now add products to your store from your dashboard. Redirecting to dashboard in 5 seconds...',
                         )
@@ -56,29 +72,26 @@ export default function CreateStore() {
                             router.push('/store')
                         }, 5000)
                         break
-                    case 'rejected':
-                        setMessage(
-                            'Your store has been rejected, contact admin for more details',
-                        )
-                        break
-                    case 'pending':
+                    case 400: // pending
+                        setStatus('pending')
                         setMessage(
                             'Your store is pending approval, please wait for admin approval',
                         )
                         break
+                    case 403: // rejected
+                        setStatus('rejected')
+                        setMessage(
+                            'Your store has been rejected, contact admin for more details',
+                        )
+                        break
                     default:
-                        setMessage('Something went wrong, please try again')
+                        setStatus('pending')
+                        setMessage('Your store status is being processed')
                         break
                 }
             } else {
-                setAlreadySubmitted(false)
-                setStatus('')
-                setMessage('')
+                toast.error(error?.response?.data?.error || error?.message)
             }
-            setLoading(false)
-        } catch (error) {
-            console.log(error)
-            toast.error(error?.response?.data?.error || error?.message)
         }
 
         setLoading(false)
